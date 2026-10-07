@@ -1,0 +1,10 @@
+# 忽略编译产物
+*.exe
+probe.exe
+asset-probe.exe
+
+# 忽略本地生成的扫描结果
+results*.csv
+
+# 忽略本地真实的测试目标文件
+urls.txt
