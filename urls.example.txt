@@ -3,3 +3,4 @@ https://www.baidu.com
 http://httpbin.org/get
 http://127.0.0.1:8080
 https://www.taobao.com
+https://demo.nacos.io/

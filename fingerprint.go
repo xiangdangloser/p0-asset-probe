@@ -14,10 +14,33 @@ type Fingerprint struct {
 
 // 预定义规则库（今天先写几条国内常见的）
 var FingerprintRules = []Fingerprint{
+	// ======== OA 与 国内管理系统 ========
 	{
-		Name:     "RouYi",
-		Headers:  []string{"Set-Cookie: rememberMe"},
-		BodyKeys: []string{"若依", "ruoyi", "/prod-api/"},
+		Name:     "RuoYi",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>若依", "/prod-api/", "ruoyi"}, // 加上 <title> 降低误报
+	},
+	{
+		Name:     "JeecgBoot",
+		Headers:  []string{"X-Powered-By: Jeecg-Boot"},
+		BodyKeys: []string{"jeecg-boot", "JeecgBoot", "积木报表"},
+	},
+	{
+		Name:     "ZhiyuanOA",
+		Headers:  []string{},
+		BodyKeys: []string{"致远OA", "seeyon", "/seeyon/"},
+	},
+	{
+		Name:     "WeaverOA",
+		Headers:  []string{},
+		BodyKeys: []string{"泛微", "weaver", "/wui/"},
+	},
+
+	// ======== Java 生态与框架 ========
+	{
+		Name:     "Shiro",
+		Headers:  []string{"Set-Cookie: rememberMe=deleteMe"}, // 强特征
+		BodyKeys: []string{},
 	},
 	{
 		Name:     "Spring Boot",
@@ -25,19 +48,88 @@ var FingerprintRules = []Fingerprint{
 		BodyKeys: []string{"Whitelabel Error Page", "Spring Boot"},
 	},
 	{
-		Name:     "Shiro",
-		Headers:  []string{"Set-Cookie: rememberMe=deleteMe"},
+		Name:     "Swagger UI",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>Swagger UI</title>", "swagger-ui"},
+	},
+	{
+		Name:     "Druid",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>Druid Stat Index</title>", "druid.index"},
+	},
+
+	// ======== 中间件与基础设施 ========
+	{
+		Name:     "Nacos",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>Nacos</title>", "console-ui/public/img/favicon.ico"}, // 收窄特征
+	},
+	{
+		Name:     "Tomcat",
+		Headers:  []string{"Server: Apache-Coyote"},
+		BodyKeys: []string{"Apache Tomcat"},
+	},
+	{
+		Name:     "Jenkins",
+		Headers:  []string{"X-Jenkins"},
+		BodyKeys: []string{"<title>Dashboard [Jenkins]</title>"},
+	},
+	{
+		Name:     "GitLab",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>GitLab</title>", "GitLab Community Edition"},
+	},
+	{
+		Name:     "Grafana",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>Grafana</title>"},
+	},
+	{
+		Name:     "Elasticsearch",
+		Headers:  []string{"X-Elastic-Product: Elasticsearch"},
+		BodyKeys: []string{"You Know, for Search", "\"cluster_name\""},
+	},
+	{
+		Name:     "Kibana",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>Kibana</title>"},
+	},
+	{
+		Name:     "Zabbix",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>Zabbix</title>"},
+	},
+	{
+		Name:     "宝塔面板",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>宝塔面板</title>", "bt.cn", "btwaf"},
+	},
+
+	// ======== 常见 Web 应用与语言 ========
+	{
+		Name:     "WordPress",
+		Headers:  []string{},
+		BodyKeys: []string{"wp-content", "wp-includes", "wordpress"},
+	},
+	{
+		Name:     "ThinkPHP",
+		Headers:  []string{"X-Powered-By: ThinkPHP"},
+		BodyKeys: []string{"ThinkPHP"},
+	},
+	{
+		Name:     "Laravel",
+		Headers:  []string{"Set-Cookie: laravel_session"},
 		BodyKeys: []string{},
 	},
 	{
-		Name:     "Nginx",
-		Headers:  []string{"Server: nginx"},
-		BodyKeys: []string{},
+		Name:     "PhpMyAdmin",
+		Headers:  []string{},
+		BodyKeys: []string{"<title>phpMyAdmin</title>", "pma_username"},
 	},
 	{
-		Name:     "Tengine",
-		Headers:  []string{"Server: Tengine"},
-		BodyKeys: []string{},
+		Name:     "Discuz",
+		Headers:  []string{},
+		BodyKeys: []string{"Discuz!", "discuz"},
 	},
 }
 
