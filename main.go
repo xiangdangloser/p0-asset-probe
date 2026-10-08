@@ -54,7 +54,7 @@ func main() {
 	defer writer.Flush()                    // 保证程序退出前把缓冲区的数据刷入磁盘
 
 	// 3. 写入表头（第一行）
-	writer.Write([]string{"Target", "StatusCode", "Server", "Title", "Error"})
+	writer.Write([]string{"Target", "StatusCode", "Server", "Title", "Fingerprint", "Error"})
 
 	// 4. 声明互斥锁，保护并发写入
 	var mu sync.Mutex
@@ -72,18 +72,19 @@ func main() {
 
 			// Worker 持续从 jobs channel 中读取任务，直到 channel 关闭且为空
 			for target := range jobs {
-				status, server, title, err := probe(client, target, *retries)
+				// 接收 5 个返回值
+				status, server, title, fpStr, err := probe(client, target, *retries)
 
 				//准备写入 CSV 的一行数据
 				var record []string
 
 				if err != nil {
 					// 发生错误时，状态码记 0，错误信息记下来
-					record = []string{target, "0", "-", "-", err.Error()}
+					record = []string{target, "0", "-", "-", "-", err.Error()}
 					fmt.Printf("%-45s ERROR  %v\n", target, err)
 				} else {
 					// 正常时，Error 留空
-					record = []string{target, fmt.Sprintf("%d", status), server, title, ""}
+					record = []string{target, fmt.Sprintf("%d", status), server, title, fpStr, ""}
 					// 格式化输出：目标 [状态码] [Server] [Title]
 					// %-15s 代表占15个字符左对齐
 					fmt.Printf("%-40s [%d] [%-15s] [%s]\n", target, status, server, title)
@@ -137,7 +138,7 @@ func main() {
 //	Day6 结果同时输出成 results.csv
 //	Day7 加上超时重试和 User-Agent 伪装
 
-func probe(client *http.Client, url string, retries int) (int, string, string, error) {
+func probe(client *http.Client, url string, retries int) (int, string, string, string, error) {
 	var resp *http.Response
 	var err error
 
@@ -149,7 +150,7 @@ func probe(client *http.Client, url string, retries int) (int, string, string, e
 		// 1. 必须用 http.NewRequest 才能自定义请求头
 		req, reqErr := http.NewRequest("GET", url, nil)
 		if reqErr != nil {
-			return 0, "", "", reqErr // URL 本身格式错误，重试也没用，直接返回
+			return 0, "", "", "", reqErr // URL 本身格式错误，重试也没用，直接返回
 		}
 		//2.穿上马甲
 		req.Header.Set("User-Agent", userAgent)
@@ -174,7 +175,7 @@ func probe(client *http.Client, url string, retries int) (int, string, string, e
 
 	// 如果重试完了依然报错，返回最后的错误
 	if err != nil {
-		return 0, "", "", err
+		return 0, "", "", "", err
 	}
 	defer resp.Body.Close()
 
@@ -187,7 +188,7 @@ func probe(client *http.Client, url string, retries int) (int, string, string, e
 	// 读取 Body 内容，限制为前 1MB，防止读取巨型文件导致 OOM（内存溢出）
 	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
 	if err != nil {
-		return statusCode, server, "-", err
+		return statusCode, server, "-", "-", err
 	}
 
 	// 提取网页标题 <title>
@@ -206,5 +207,12 @@ func probe(client *http.Client, url string, retries int) (int, string, string, e
 			title = title[:30] + "..."
 		}
 	}
-	return statusCode, server, title, nil
+
+	// 3. 【新增】调用指纹识别引擎
+	fingerprints := identifyFingerprint(resp.Header, bodyStr)
+	fpStr := strings.Join(fingerprints, "|")
+	if fpStr == "" {
+		fpStr = "-"
+	}
+	return statusCode, server, title, fpStr, nil
 }
